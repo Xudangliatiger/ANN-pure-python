@@ -24,6 +24,6 @@ y_train = transform_one_hot(y_train)
 ann = model.model(input_size=784,n_hidden=512,output_size=10,weight=None,bias=None)
 
 for i in  range(epoch_size):
-    print('----------------------------------epoch d%',i)
+    print('----------------------------------epoch %d',i)
     ann.SGD(x_train,y_train,batch_size,lr)
 
