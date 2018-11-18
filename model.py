@@ -17,31 +17,40 @@ class model(object):
                 self.weight.append(weight2)
             else:
                 self.weight = []
-                weight0 = np.random.random((self.input_size, self.n_hidden))
+                weight0 = np.random.randn(self.input_size, self.n_hidden)
                 self.weight.append(weight0)
-                weight1 = np.random.random((self.n_hidden , self.n_hidden))
+                weight1 = np.random.randn(self.n_hidden , self.n_hidden)
                 self.weight.append(weight1)
-                weight2 = np.random.random((self.n_hidden , self.output_size))
+                weight2 = np.random.randn(self.n_hidden , self.output_size)
                 self.weight.append(weight2)
         else:
             self.weight=weight
 
     # x shape is (batch_size,n)
-    def relu(self,x):
-        return (np.abs(x) + x) / 2.0
-        #x的绝对值加自己再除以2
+    # def relu(self,x):
+    #     return (np.abs(x) + x) / 2.0
+    #     #x的绝对值加自己再除以2
+
+    def relu(self, x):
+        y = np.where(x < 0, 0.1 * x, x)
+        return y
 
     # y shape is (batch_size,n)
     def diffRelu(self, y):
-        temp=np.ones(y.shape)
-        return temp*(y>0)
+        temp = np.where(y < 0, 0.1 * y, y)
+        # temp=np.ones(y.shape)
+        # temp=temp * (y > 0)
+        return temp
         # (y>0是一个true 和 false 的矩阵~~~哈哈哈，乘出来刚好所有的非正项为0~)
 
     # x 形状为（batch_size,input_size）,y2 形状为（batch_size,input_size）
     def forward(self,x):
-        y0=self.relu(np.matmul(x,self.weight[0]))
-        y1=self.relu(np.matmul(y0,self.weight[1]))
-        y2=self.relu(np.matmul(y1,self.weight[2]))
+        a=np.dot(x, self.weight[0])
+        y0=self.relu(a)
+        b=np.dot(y0,self.weight[1])
+        y1=self.relu(b)
+        c=np.dot(y1,self.weight[2])
+        y2=self.relu(c)
         return y2
 
     def backPropagation(self, x, y):
@@ -58,7 +67,7 @@ class model(object):
         #反向传播计算斜率 ,由于计算时需复合交替使用对细胞的偏导，和对权值的偏导
         round_cell = []
         round_weight = []
-        round_cell.append(self.diffRelu(ys[-1] - y))
+        round_cell.append(self.diffRelu((ys[-1] - y)/len(y)))
         # 反一层
         round_cell[0].shape=(10,1)
         ys[-2].shape=(self.n_hidden,1)
@@ -67,7 +76,7 @@ class model(object):
         # 反二层
         round_cell[1].shape=(self.n_hidden,1)
         ys[-3].shape=(self.n_hidden,1)
-        round_weight.append(np.matmul(ys[-3].T,round_cell[1]).T)
+        round_weight.append(np.matmul(ys[-3],round_cell[1].T))
         round_cell.append(self.diffRelu(np.matmul(round_cell[1].T, self.weight[-2].T)))
         # 输出
         round_cell[2].shape=(self.n_hidden,1)
@@ -81,6 +90,9 @@ class model(object):
 
 
     def gradDesent(self,batch_x,batch_y,lr):
+
+
+        #先对一个batch的数据进行归一化
 
         #对一个batch里面的数据得到权值偏导矩阵进行加和，skrskr
         #每一次内存里面只有一batch中的一个（x，y），计算了权值的偏导之后加进total里面
@@ -103,18 +115,26 @@ class model(object):
         x = train_x[indices]
         y = train_y[indices]
 
-        print('first epoch is ready to train')
+        print('this epoch is ready to train')
 
         #每一个batch都更新权重
         loss = 0
         for  k in range(0, m, batch_size):
+            # error = (self.forward(x[k: k + batch_size]) - y[k: k + batch_size])
+            # loss = np.mean(error * error)
+            # print('BEFOR THE GD the loss of this batch is' + str(loss))
+
             self.gradDesent(x[k: k+batch_size],y[k: k+batch_size],lr)
+
             error = (self.forward(x[k: k+batch_size])-y[k: k+batch_size])
-            loss =loss+np.mean(error*error)
-            if k%200==0:
+            loss =np.mean(error*error)
+            print('AFTER THE GD the loss of this batch is' + str(loss))
+
+
+            if k%20000==0:
                 print('acc now is '+str(self.evaluate(x[k: k+batch_size],y[k: k+batch_size])))
 
-        print('the loss of this batch is'+str(loss/m))
+
 
 #   def evaluate(self, test_data):
 #   ''' 评价函数，预测正确的个数。 np.argmax函数返回数组的最大值的序号，实现从one-hot到数字的转换； ''' test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data] return sum(int(x == y) for (x, y) in test_results) def predict(self, x): '''预测函数''' return np.argmax(self.feedforward(x))

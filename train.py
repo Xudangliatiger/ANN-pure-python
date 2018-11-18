@@ -3,7 +3,7 @@ import numpy as  np
 import model
 
 #超参数
-lr = 0.001
+lr = 0.00001
 batch_size = 100
 epoch_size = 100
 
@@ -15,15 +15,25 @@ def transform_one_hot(labels):
   n_labels = np.max(labels) + 1
   one_hot = np.eye(n_labels)[labels]
   return one_hot
+def dataNormalize(data):
+    max=data.max()
+    min=data.min()
+    data= (data-min)/(min+max)
+    return  data
+
 x_train, y_train = mnist_reader.load_mnist('./data', kind='train')
-x_test, y_test = mnist_reader.load_mnist('./data', kind='t10k')
-print(len(y_test))
+#x_test, y_test = mnist_reader.load_mnist('./data', kind='t10k')
+x_train =  dataNormalize(x_train)
 y_train = transform_one_hot(y_train)
 
 #定义模型
 ann = model.model(input_size=784,n_hidden=512,output_size=10,weight=None,bias=None)
 
 for i in  range(epoch_size):
-    print('----------------------------------epoch %d',i)
+    print('----------------------------------epoch',i+1,' is running')
+    # if i < 50:
+    #     lr = 0.000001
+    # else:
+    #     lr = 0.00001
     ann.SGD(x_train,y_train,batch_size,lr)
 
