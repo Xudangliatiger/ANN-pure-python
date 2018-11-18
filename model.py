@@ -1,12 +1,13 @@
 import numpy as  np
+import os
 
 class model(object):
-    def __init__(self,input_size,n_hidden,output_size,weight,bias):
+    def __init__(self,input_size,n_hidden,output_size,weight_path,bias):
         self.input_size = input_size
         self.n_hidden = n_hidden
         self.output_size = output_size
         self.bias = bias
-        if not weight:
+        if not weight_path:
             if bias:
                 self.weight=[]
                 weight0= np.random.random((self.input_size, self.n_hidden+1))
@@ -24,8 +25,11 @@ class model(object):
                 weight2 = np.random.randn(self.n_hidden , self.output_size)
                 self.weight.append(weight2)
         else:
-            self.weight=weight
-
+            self.weight=[]
+            loader=np.load(weight_path)
+            self.weight.append(loader['arr_0'])
+            self.weight.append(loader['arr_1'])
+            self.weight.append(loader['arr_2'])
     # x shape is (batch_size,n)
     # def relu(self,x):
     #     return (np.abs(x) + x) / 2.0
@@ -159,7 +163,12 @@ class model(object):
             a.append(np.argmax(i))
         return a
 
+    def saveModel(self):
 
+        np.savez('weights.npz',
+                 self.weight[0],
+                 self.weight[1],
+                 self.weight[2])
 
 
 

@@ -6,8 +6,12 @@ import model
 lr = 0.00001
 batch_size = 100
 epoch_size = 100
+weight_path = './weights.npz'
 
-
+#网络参数
+input_size=784
+n_hidden=512
+output_size=10
 
 
 #装载数据
@@ -27,7 +31,7 @@ x_train =  dataNormalize(x_train)
 y_train = transform_one_hot(y_train)
 
 #定义模型
-ann = model.model(input_size=784,n_hidden=512,output_size=10,weight=None,bias=None)
+ann = model.model(input_size=input_size,n_hidden=n_hidden,output_size=output_size,weight_path=weight_path,bias=None)
 
 for i in  range(epoch_size):
     print('----------------------------------epoch',i+1,' is running')
@@ -36,4 +40,5 @@ for i in  range(epoch_size):
     # else:
     #     lr = 0.00001
     ann.SGD(x_train,y_train,batch_size,lr)
-
+    if i % 2 == 0:
+        ann.saveModel()
