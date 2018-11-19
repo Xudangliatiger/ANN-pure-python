@@ -122,22 +122,33 @@ class model(object):
         print('this epoch is ready to train')
 
         #每一个batch都更新权重
-        loss = 0
+        loss_total = 0
         for  k in range(0, m, batch_size):
-            # error = (self.forward(x[k: k + batch_size]) - y[k: k + batch_size])
-            # loss = np.mean(error * error)
-            # print('BEFOR THE GD the loss of this batch is' + str(loss))
 
+            # 200个batch打印一下acc，其实在前几十个epoch检测这个acc没有一点用
+            if k%20000==0:
+                print('acc now is '+str(self.evaluate(x[k: k+batch_size],y[k: k+batch_size]))+ " and the process is running")
+
+            # 前20个batch观察一下loss下降的大小如何，是否合适，用来调参
+            if k < 1000:
+                error = (self.forward(x[k: k + batch_size]) - y[k: k + batch_size])
+                loss = np.mean(error * error)
+                print('BEFOR THE GD the loss of this batch is' + str(loss))
+
+            # 更新权值
             self.gradDesent(x[k: k+batch_size],y[k: k+batch_size],lr)
 
+            # 更新权值之后的error记录下来，最后求个平均数打印。用以监控每一个epoch的损失函数是否下降正常
             error = (self.forward(x[k: k+batch_size])-y[k: k+batch_size])
             loss =np.mean(error*error)
-            print('AFTER THE GD the loss of this batch is' + str(loss))
+            loss_total += loss
+
+            if k < 2000:
+                print('AFTER THE GD the loss of this batch is' + str(loss))
 
 
-            if k%20000==0:
-                print('acc now is '+str(self.evaluate(x[k: k+batch_size],y[k: k+batch_size])))
 
+        print('---------------------the loss of this epoch is-----------------    '+str(loss_total*100/m))
 
 
 #   def evaluate(self, test_data):

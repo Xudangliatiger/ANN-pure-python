@@ -3,7 +3,7 @@ import numpy as  np
 import model
 
 #超参数
-lr = 0.00001
+lr = 0.000005
 batch_size = 100
 epoch_size = 100
 weight_path = './weights.npz'
