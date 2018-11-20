@@ -2,27 +2,28 @@
 import os
 
 class model(object):
-    def __init__(self,input_size,n_hidden,output_size,weight_path,bias):
+    def __init__(self,input_size,n_hidden_1,n_hidden_2,output_size,weight_path,bias):
         self.input_size = input_size
-        self.n_hidden = n_hidden
+        self.n_hidden_1 = n_hidden_1
+        self.n_hidden_2 = n_hidden_2
         self.output_size = output_size
         self.bias = bias
         if not weight_path:
             if bias:
                 self.weight=[]
-                weight0= np.random.random((self.input_size, self.n_hidden+1))
+                weight0= np.random.random((self.input_size, self.n_hidden_1+1))
                 self.weight.append(weight0)
-                weight1 = np.random.random((self.n_hidden+1, self.n_hidden+1))
+                weight1 = np.random.random((self.n_hidden_1+1, self.n_hidden_2+1))
                 self.weight.append(weight1)
-                weight2 = np.random.random((self.n_hidden+1, self.output_size))
+                weight2 = np.random.random((self.n_hidden_2+1, self.output_size))
                 self.weight.append(weight2)
             else:
                 self.weight = []
-                weight0 = np.random.randn(self.input_size, self.n_hidden)
+                weight0 = np.random.randn(self.input_size, self.n_hidden_1)
                 self.weight.append(weight0)
-                weight1 = np.random.randn(self.n_hidden , self.n_hidden)
+                weight1 = np.random.randn(self.n_hidden_1 , self.n_hidden_2)
                 self.weight.append(weight1)
-                weight2 = np.random.randn(self.n_hidden , self.output_size)
+                weight2 = np.random.randn(self.n_hidden_2 , self.output_size)
                 self.weight.append(weight2)
         else:
             self.weight=[]
@@ -94,16 +95,16 @@ class model(object):
         round_cell.append(ys[-1] - y)
         # 反一层
         round_cell[0].shape=(10,1)
-        ys[-2].shape=(self.n_hidden,1)
+        ys[-2].shape=(self.n_hidden_2,1)
         round_weight.append(np.matmul(ys[-2],round_cell[0].T))
         round_cell.append(self.diffRelu(np.matmul(round_cell[0].T, self.weight[-1].T)))
         # 反二层
-        round_cell[1].shape=(self.n_hidden,1)
-        ys[-3].shape=(self.n_hidden,1)
+        round_cell[1].shape=(self.n_hidden_2,1)
+        ys[-3].shape=(self.n_hidden_1,1)
         round_weight.append(np.matmul(ys[-3],round_cell[1].T))
         round_cell.append(self.diffRelu(np.matmul(round_cell[1].T, self.weight[-2].T)))
         # 输出
-        round_cell[2].shape=(self.n_hidden,1)
+        round_cell[2].shape=(self.n_hidden_1,1)
         x.shape=(self.input_size,1)
         round_weight.append(np.matmul(x,round_cell[2].T))
 
@@ -129,6 +130,7 @@ class model(object):
         #更新权值
         self.weight = [w - (lr/len(batch_y))*round
                        for w, round in zip(self.weight, round_weight_toal)]
+        a=1
 
     def SGD(self, train_x,train_y, batch_size, lr):
         ''' 随机梯度下降： train_data是data_wrapper()包装之后的训练数据，数据格式见data_wrapper()函数定义处； epochs为迭代次数； batch_size为采样时的批量数据的大小； alpha是学习率； cv_data为可选参数，是data_wrapper()包装之后的交叉验证数据，数据格式见data_wrapper()函数定义处； 若给出了交叉验证数据，则在每次训练后都会进行性能评估，可用以跟踪进度，但会拖慢执行速度。 '''
@@ -150,11 +152,11 @@ class model(object):
                 print('acc now is '+str(self.evaluate(x[k: k+batch_size],y[k: k+batch_size]))+ " and the process is running")
 
             # 前20个batch观察一下loss下降的大小如何，是否合适，用来调参
-            if k < 1000:
-                error = (self.forward(x[k: k + batch_size]) - y[k: k + batch_size])
-                loss = np.mean(error * error)
-                # loss = self.cross_entropy(self.forward(x[k: k + batch_size]), y[k: k + batch_size])
-                print('BEFOR THE GD the loss of this batch is' + str(loss))
+            # if k < 1000:
+            #     error = (self.forward(x[k: k + batch_size]) - y[k: k + batch_size])
+            #     loss = np.mean(error * error)
+            #     # loss = self.cross_entropy(self.forward(x[k: k + batch_size]), y[k: k + batch_size])
+            #     print('BEFOR THE GD the loss of this batch is' + str(loss))
 
             # 更新权值
             self.gradDesent(x[k: k+batch_size],y[k: k+batch_size],lr)
@@ -169,7 +171,7 @@ class model(object):
             loss_total += loss
 
             
-            print('AFTER THE GD the loss of this batch is' + str(loss))
+            # print('AFTER THE GD the loss of this batch is' + str(loss))
 
 
 

@@ -3,15 +3,16 @@ import numpy as  np
 import model
 
 #超参数
-lr = 0.0001
+lr = 0.00001
 batch_size = 100
 epoch_size = 100
 weight_path = './weights.npz'
-# weight_path = None
+#weight_path = None
 
 #网络参数
 input_size=784
-n_hidden=512
+n_hidden_1=512
+n_hidden_2=128
 output_size=10
 
 
@@ -34,7 +35,7 @@ if __name__ == '__main__':
     y_train = transform_one_hot(y_train)
 
     #定义模型
-    ann = model.model(input_size=input_size,n_hidden=n_hidden,output_size=output_size,weight_path=weight_path,bias=None)
+    ann = model.model(input_size=input_size,n_hidden_1=n_hidden_1,n_hidden_2=n_hidden_2,weight_path=weight_path,bias=None,output_size=output_size)
 
     for i in  range(epoch_size):
         print('----------------------------------epoch',i+1,' is running')
@@ -42,6 +43,7 @@ if __name__ == '__main__':
         #     lr = 0.000001
         # else:
         #     lr = 0.00001
+        lr = 0.8*lr
         ann.SGD(x_train,y_train,batch_size,lr)
-        if i % 2 == 0:
-            ann.saveModel()
+        # if i % 2 == 0:
+        ann.saveModel()
