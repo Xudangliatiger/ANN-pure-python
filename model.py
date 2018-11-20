@@ -1,4 +1,4 @@
-import numpy as  np
+﻿import numpy as  np
 import os
 
 class model(object):
@@ -46,6 +46,23 @@ class model(object):
         # temp=temp * (y > 0)
         return temp
         # (y>0是一个true 和 false 的矩阵~~~哈哈哈，乘出来刚好所有的非正项为0~)
+    def softmax(self,x):
+        # exps = np.exp(x-np.max(x))
+        # return  exps/np.sum(exps)
+        x_row_max = x.max(axis=1).reshape(x.shape[0], 1)
+        x = x - x_row_max
+        x_exp = np.exp(x)
+        x_exp_row_sum = x_exp.sum(axis=1).reshape(x.shape[0], 1)
+        x_softmax = x_exp / x_exp_row_sum
+        return x_softmax
+
+    # def softmax(self,x):
+    #     return np.exp(x) / np.sum(np.exp(x), axis=0)
+
+    def cross_entropy(self,output,y):
+        loss = np.sum(- y * np.log(output))
+        #loss = max(output, 0) - output * y + np.log(1 + np.exp(-np.abs(output)))
+        return loss
 
     # x 形状为（batch_size,input_size）,y2 形状为（batch_size,input_size）
     def forward(self,x):
@@ -54,7 +71,7 @@ class model(object):
         b=np.dot(y0,self.weight[1])
         y1=self.relu(b)
         c=np.dot(y1,self.weight[2])
-        y2=self.relu(c)
+        y2=self.softmax(c)
         return y2
 
     def backPropagation(self, x, y):
@@ -65,13 +82,16 @@ class model(object):
         ys.append(y0)
         y1 = self.relu(np.matmul(y0, self.weight[1]))
         ys.append(y1)
-        y2 = self.relu(np.matmul(y1, self.weight[2]))
+        y2 = np.matmul(y1, self.weight[2])
+        y2 = self.softmax(np.reshape(y2,(1,len(y2))))
         ys.append(y2)
 
         #反向传播计算斜率 ,由于计算时需复合交替使用对细胞的偏导，和对权值的偏导
         round_cell = []
         round_weight = []
-        round_cell.append(self.diffRelu((ys[-1] - y)/len(y)))
+
+        # 根据交叉熵的反向求导，这里最后一层的细胞的偏导直接等于 softmax - y真（onehot）
+        round_cell.append(ys[-1] - y)
         # 反一层
         round_cell[0].shape=(10,1)
         ys[-2].shape=(self.n_hidden,1)
@@ -133,6 +153,7 @@ class model(object):
             if k < 1000:
                 error = (self.forward(x[k: k + batch_size]) - y[k: k + batch_size])
                 loss = np.mean(error * error)
+                # loss = self.cross_entropy(self.forward(x[k: k + batch_size]), y[k: k + batch_size])
                 print('BEFOR THE GD the loss of this batch is' + str(loss))
 
             # 更新权值
@@ -141,10 +162,14 @@ class model(object):
             # 更新权值之后的error记录下来，最后求个平均数打印。用以监控每一个epoch的损失函数是否下降正常
             error = (self.forward(x[k: k+batch_size])-y[k: k+batch_size])
             loss =np.mean(error*error)
+            # 使用交叉熵loss代替了均方差loss
+            # loss = self.cross_entropy(self.forward(x[k: k + batch_size]), y[k: k + batch_size])
+            # print('BEFOR THE GD the loss of this batch is' + str(loss))
+
             loss_total += loss
 
-            if k < 2000:
-                print('AFTER THE GD the loss of this batch is' + str(loss))
+            
+            print('AFTER THE GD the loss of this batch is' + str(loss))
 
 
 
