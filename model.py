@@ -1,51 +1,51 @@
 ﻿import numpy as  np
-import os
+
 
 class model(object):
     def __init__(self,input_size,n_hidden_1,n_hidden_2,output_size,weight_path,bias):
         self.input_size = input_size
         self.n_hidden_1 = n_hidden_1
-        self.n_hidden_2 = n_hidden_2
+        # self.n_hidden_2 = n_hidden_2
         self.output_size = output_size
         self.bias = bias
         if not weight_path:
             if bias:
                 self.weight=[]
-                weight0= np.random.random((self.input_size, self.n_hidden_1+1))
-                self.weight.append(weight0)
-                weight1 = np.random.random((self.n_hidden_1+1, self.n_hidden_2+1))
-                self.weight.append(weight1)
-                weight2 = np.random.random((self.n_hidden_2+1, self.output_size))
-                self.weight.append(weight2)
+                # weight0= np.random.random((self.input_size, self.n_hidden_1+1))
+                # self.weight.append(weight0)
+                # weight1 = np.random.random((self.n_hidden_1+1, self.n_hidden_2+1))
+                # self.weight.append(weight1)
+                # weight2 = np.random.random((self.n_hidden_2+1, self.output_size))
+                # self.weight.append(weight2)
             else:
                 self.weight = []
                 weight0 = np.random.randn(self.input_size, self.n_hidden_1)
                 self.weight.append(weight0)
-                weight1 = np.random.randn(self.n_hidden_1 , self.n_hidden_2)
+                weight1 = np.random.randn(self.n_hidden_1 , self.output_size)
                 self.weight.append(weight1)
-                weight2 = np.random.randn(self.n_hidden_2 , self.output_size)
-                self.weight.append(weight2)
+                # weight2 = np.random.randn(self.n_hidden_2 , self.output_size)
+                # self.weight.append(weight2)
         else:
             self.weight=[]
             loader=np.load(weight_path)
             self.weight.append(loader['arr_0'])
             self.weight.append(loader['arr_1'])
-            self.weight.append(loader['arr_2'])
+            # self.weight.append(loader['arr_2'])
     # x shape is (batch_size,n)
     # def relu(self,x):
     #     return (np.abs(x) + x) / 2.0
     #     #x的绝对值加自己再除以2
 
     def relu(self, x):
-        y = np.where(x < 0, 0.1 * x, x)
+        y = np.where(x < 0, 0,x)
         return y
 
     # y shape is (batch_size,n)
     def diffRelu(self, y):
-        temp = np.where(y < 0, 0.1 * y, y)
-        # temp=np.ones(y.shape)
-        # temp=temp * (y > 0)
-        return temp
+        # temp = np.where(y == 0,0,y)
+        # temp = np.ones(y.shape)
+        # temp = temp * (y > 0)
+        return y
         # (y>0是一个true 和 false 的矩阵~~~哈哈哈，乘出来刚好所有的非正项为0~)
     def softmax(self,x):
         # exps = np.exp(x-np.max(x))
@@ -61,19 +61,22 @@ class model(object):
     #     return np.exp(x) / np.sum(np.exp(x), axis=0)
 
     def cross_entropy(self,output,y):
-        loss = np.sum(- y * np.log(output))
-        #loss = max(output, 0) - output * y + np.log(1 + np.exp(-np.abs(output)))
-        return loss
+
+        loss = 0
+        for a, b in zip(output,y):
+            loss = loss+np.sum(- b * np.log(a))
+            # loss = loss + np.max(output, 0) - output * y + np.log(1 + np.exp(-np.abs(output)))
+        return loss/y.shape[0]
 
     # x 形状为（batch_size,input_size）,y2 形状为（batch_size,input_size）
     def forward(self,x):
         a=np.dot(x, self.weight[0])
         y0=self.relu(a)
         b=np.dot(y0,self.weight[1])
-        y1=self.relu(b)
-        c=np.dot(y1,self.weight[2])
-        y2=self.softmax(c)
-        return y2
+        y1=self.softmax(b)
+        #c=np.dot(y1,self.weight[2])
+        #y2=self.softmax(c)
+        return y1
 
     def backPropagation(self, x, y):
 
@@ -81,11 +84,12 @@ class model(object):
         ys = []
         y0 = self.relu(np.matmul(x, self.weight[0]))
         ys.append(y0)
-        y1 = self.relu(np.matmul(y0, self.weight[1]))
+        y1 = np.matmul(y0, self.weight[1])
+        y1 = self.softmax(np.reshape(y1,(1,len(y1))))
         ys.append(y1)
-        y2 = np.matmul(y1, self.weight[2])
-        y2 = self.softmax(np.reshape(y2,(1,len(y2))))
-        ys.append(y2)
+        # y2 = np.matmul(y1, self.weight[2])
+        # y2 = self.softmax(np.reshape(y2,(1,len(y2))))
+        # ys.append(y2)
 
         #反向传播计算斜率 ,由于计算时需复合交替使用对细胞的偏导，和对权值的偏导
         round_cell = []
@@ -95,18 +99,18 @@ class model(object):
         round_cell.append(ys[-1] - y)
         # 反一层
         round_cell[0].shape=(10,1)
-        ys[-2].shape=(self.n_hidden_2,1)
+        ys[-2].shape=(self.n_hidden_1,1)
         round_weight.append(np.matmul(ys[-2],round_cell[0].T))
         round_cell.append(self.diffRelu(np.matmul(round_cell[0].T, self.weight[-1].T)))
         # 反二层
-        round_cell[1].shape=(self.n_hidden_2,1)
-        ys[-3].shape=(self.n_hidden_1,1)
-        round_weight.append(np.matmul(ys[-3],round_cell[1].T))
-        round_cell.append(self.diffRelu(np.matmul(round_cell[1].T, self.weight[-2].T)))
+        # round_cell[1].shape=(self.n_hidden_2,1)
+        # ys[-3].shape=(self.n_hidden_1,1)
+        # round_weight.append(np.matmul(ys[-3],round_cell[1].T))
+        # round_cell.append(self.diffRelu(np.matmul(round_cell[1].T, self.weight[-2].T)))
         # 输出
-        round_cell[2].shape=(self.n_hidden_1,1)
+        round_cell[1].shape=(self.n_hidden_1,1)
         x.shape=(self.input_size,1)
-        round_weight.append(np.matmul(x,round_cell[2].T))
+        round_weight.append(np.matmul(x,round_cell[1].T))
 
 
         round_weight.reverse()
@@ -149,7 +153,8 @@ class model(object):
 
             # 200个batch打印一下acc，其实在前几十个epoch检测这个acc没有一点用
             if k%20000==0:
-                print('acc now is '+str(self.evaluate(x[k: k+batch_size],y[k: k+batch_size]))+ " and the process is running")
+                acc = self.evaluate(x[k: k + batch_size], y[k: k + batch_size])
+                print('acc now is '+str(acc)+ " and the process is running")
 
             # 前20个batch观察一下loss下降的大小如何，是否合适，用来调参
             # if k < 1000:
@@ -162,8 +167,9 @@ class model(object):
             self.gradDesent(x[k: k+batch_size],y[k: k+batch_size],lr)
 
             # 更新权值之后的error记录下来，最后求个平均数打印。用以监控每一个epoch的损失函数是否下降正常
-            error = (self.forward(x[k: k+batch_size])-y[k: k+batch_size])
-            loss =np.mean(error*error)
+            # error = (self.forward(x[k: k+batch_size])-y[k: k+batch_size])
+            loss =self.cross_entropy(self.forward(x[k: k+batch_size]),y[k: k+batch_size])
+
             # 使用交叉熵loss代替了均方差loss
             # loss = self.cross_entropy(self.forward(x[k: k + batch_size]), y[k: k + batch_size])
             # print('BEFOR THE GD the loss of this batch is' + str(loss))
@@ -173,10 +179,10 @@ class model(object):
             
             # print('AFTER THE GD the loss of this batch is' + str(loss))
 
+        loss_epoch = loss_total*batch_size/m
 
 
-        print('---------------------the loss of this epoch is-----------------    '+str(loss_total*100/m))
-
+        return loss_epoch
 
 #   def evaluate(self, test_data):
 #   ''' 评价函数，预测正确的个数。 np.argmax函数返回数组的最大值的序号，实现从one-hot到数字的转换； ''' test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data] return sum(int(x == y) for (x, y) in test_results) def predict(self, x): '''预测函数''' return np.argmax(self.feedforward(x))
@@ -205,8 +211,7 @@ class model(object):
 
         np.savez('weights.npz',
                  self.weight[0],
-                 self.weight[1],
-                 self.weight[2])
+                 self.weight[1])
 
 
 
