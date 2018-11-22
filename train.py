@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import model
 
 #超参数
-lr = 0.003
+lr = 0.01
 batch_size = 100
 epoch_size = 100
 weight_path = './weights.npz'
-#weight_path = None
+# weight_path = None
 
 #网络参数
 input_size=784

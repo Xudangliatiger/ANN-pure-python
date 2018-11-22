@@ -11,12 +11,12 @@ class model(object):
         if not weight_path:
             if bias:
                 self.weight=[]
-                # weight0= np.random.random((self.input_size, self.n_hidden_1+1))
-                # self.weight.append(weight0)
-                # weight1 = np.random.random((self.n_hidden_1+1, self.n_hidden_2+1))
-                # self.weight.append(weight1)
-                # weight2 = np.random.random((self.n_hidden_2+1, self.output_size))
-                # self.weight.append(weight2)
+                weight0= np.random.random((self.input_size, self.n_hidden_1+1))
+                self.weight.append(weight0)
+                weight1 = np.random.random((self.n_hidden_1+1, self.n_hidden_2+1))
+                self.weight.append(weight1)
+                weight2 = np.random.random((self.n_hidden_2+1, self.output_size))
+                self.weight.append(weight2)
             else:
                 self.weight = []
                 weight0 = np.random.randn(self.input_size, self.n_hidden_1)
@@ -31,6 +31,8 @@ class model(object):
             self.weight.append(loader['arr_0'])
             self.weight.append(loader['arr_1'])
             # self.weight.append(loader['arr_2'])
+
+
     # x shape is (batch_size,n)
     # def relu(self,x):
     #     return (np.abs(x) + x) / 2.0
