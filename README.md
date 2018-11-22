@@ -14,7 +14,7 @@ After we changed the LR value to 0.005 and trained 100 epoch，the ACC didn't ch
 
 版本号1.N
 
-When we got 2 hidden lyaer inside the network, the acc only up to 60%, and we tried (784,512,512,10) it had the most weights about 7MB, then is (784,512,256,10),(784,256,256,10),(784,256,128,10) which had the best performence in the tree layers network,(784,128,128,10).Sadly,they both worked not very well,though I've think the deeper and bigger network have a better ability to fit the data. And in this case ,(784,128,10)'s acc could easily up to 80%.
+When we got 2 hidden lyaer inside the network, the acc only up to 60%, and we tried (784,512,512,10) it had the largest weights about 7MB, then is (784,512,256,10),(784,256,256,10),(784,256,128,10) which had the best performence in the tree layers network,(784,128,128,10).Sadly,they both worked not very well,though I've think the deeper and bigger network have a better ability to fit the data. And in this case ,(784,128,10)'s acc could easily up to 80%.
 
 We took away the MSE loss，and used softmax in the last output layer with cross entropy loss.The delta of this loss × the delta of activation function just equals to y （one-hot） minus output.
 
