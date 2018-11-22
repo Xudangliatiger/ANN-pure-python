@@ -10,7 +10,7 @@ Employed the RELU instead of sigmoid
 
 When the learning rate was 0.01. and after 100 epoch（maybe 10 mins） The loss down to 0.5, and the ACC of test data up to 82%
 After we changed the LR value to 0.005 and trained 100 epoch，the ACC didn't change too much，only 83%.
-
+![avatar](./.png)
 
 
 
