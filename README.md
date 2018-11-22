@@ -1,4 +1,7 @@
-# ANN-pure-python
+# ANN-pure-python-numpy
+
+
+lt us build our own network without any library！
 
 
 版本号2.0
